@@ -1,35 +1,34 @@
 const bcrypt = require('bcrypt');
-const Admin = require('../models/adminSchema.js');
-const Sclass = require('../models/sclassSchema.js');
-const Student = require('../models/studentSchema.js');
-const Teacher = require('../models/teacherSchema.js');
-const Subject = require('../models/courseSchema.js');
-const Notice = require('../models/noticeSchema.js');
-const Complain = require('../models/complainSchema.js');
-
+const Admin = require('../models/adminSchema.js'); 
 
 const adminRegister = async (req, res) => {
     try {
-        const admin = new Admin({
-            ...req.body
-        });
+        const { name, email, password, campusName } = req.body;
 
-        const existingAdminByEmail = await Admin.findOne({ email: req.body.email });
-        const existingSchool = await Admin.findOne({ schoolName: req.body.schoolName });
+        const existingAdminByEmail = await Admin.findOne({ email: email.toLowerCase() });
+        const existingCampus = await Admin.findOne({ campusName: campusName.toLowerCase() });
 
         if (existingAdminByEmail) {
-            res.send({ message: 'Email already exists' });
+            return res.status(400).json({ message: 'Email already exists' });
         }
-        else if (existingSchool) {
-            res.send({ message: 'SMIT Campus name already exists' });
+        if (existingCampus) {
+            return res.status(400).json({ message: 'Campus name already exists' });
         }
-        else {
-            let result = await admin.save();
-            result.password = undefined;
-            res.send(result);
-        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const admin = new Admin({
+            name,
+            email: email.toLowerCase(),
+            password: hashedPassword,
+            campusName: campusName.toLowerCase() 
+        });
+
+        let result = await admin.save();
+        result.password = undefined;
+        res.status(201).json(result);
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: 'Server error', error: err });
     }
 };
 
@@ -37,7 +36,7 @@ const adminLogIn = async (req, res) => {
     if (req.body.email && req.body.password) {
         let admin = await Admin.findOne({ email: req.body.email });
         if (admin) {
-            if (req.body.password === admin.password) {
+            if (await bcrypt.compare(req.body.password, admin.password)) { // Using bcrypt to compare hashed passwords
                 admin.password = undefined;
                 res.send(admin);
             } else {
@@ -53,18 +52,24 @@ const adminLogIn = async (req, res) => {
 
 const getAdminDetail = async (req, res) => {
     try {
-        let admin = await Admin.findById(req.params.id);
+        const adminId = req.params.id;
+
+        // Log the ID to verify it's being passed correctly
+        // console.log('Requested Admin ID:', adminId);
+
+        let admin = await Admin.findById(adminId);
+
         if (admin) {
-            admin.password = undefined;
-            res.send(admin);
-        }
-        else {
-            res.send({ message: "No admin found" });
+            admin.password = undefined; // Hide the password field
+            res.status(200).json(admin); // Return the admin data
+        } else {
+            res.status(404).json({ message: "No admin found" }); // Admin not found
         }
     } catch (err) {
-        res.status(500).json(err);
+        // Log the error for further investigation
+        console.error('Error fetching admin details:', err);
+        res.status(500).json({ message: 'Server error', error: err });
     }
-}
-
-
+};
 module.exports = { adminRegister, adminLogIn, getAdminDetail };
+
