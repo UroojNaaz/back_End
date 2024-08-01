@@ -1,6 +1,6 @@
 const Sclass = require('../models/sclassSchema.js');
 const Student = require('../models/studentSchema.js');
-const Subject = require('../models/courseSchema.js');
+const Subject = require('../models/subjectSchema.js');
 const Teacher = require('../models/teacherSchema.js');
 
 const sclassCreate = async (req, res) => {
@@ -79,7 +79,7 @@ const deleteSclass = async (req, res) => {
         }
         const deletedStudents = await Student.deleteMany({ sclassName: req.params.id });
         const deletedSubjects = await Subject.deleteMany({ sclassName: req.params.id });
-        const deletedTeachers = await Teacher.deleteMany({ teachSclass: req.params.id });
+        const deletedTeachers = await Teacher.deleteMany({ sclassName: req.params.id });
         res.send(deletedClass);
     } catch (error) {
         res.status(500).json(error);

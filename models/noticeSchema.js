@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const noticeSchema = new mongoose.Schema({
     title: {
@@ -13,10 +13,10 @@ const noticeSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-    school: {
+    campus: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin'
-    },
+    }
 }, { timestamps: true });
 
-module.exports = mongoose.model("notice", noticeSchema)
+module.exports = mongoose.model("notice", noticeSchema);

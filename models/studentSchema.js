@@ -7,6 +7,7 @@ const studentSchema = new mongoose.Schema({
     },
     rollNum: {
         type: Number,
+        unique: true,
         required: true
     },
     password: {
@@ -18,7 +19,7 @@ const studentSchema = new mongoose.Schema({
         ref: 'sclass',
         required: true,
     },
-    school: {
+    campus: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin',
         required: true,

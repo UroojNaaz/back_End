@@ -5,11 +5,12 @@ const sclassSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    school: {
+    campus: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin'
     },
 }, { timestamps: true });
 
 module.exports = mongoose.model("sclass", sclassSchema);
+
 

@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const Student = require('../models/studentSchema.js');
-const Subject = require('../models/courseSchema.js');
+const Subject = require('../models/subjectSchema.js');
 
 const studentRegister = async (req, res) => {
     try {
@@ -9,17 +9,16 @@ const studentRegister = async (req, res) => {
 
         const existingStudent = await Student.findOne({
             rollNum: req.body.rollNum,
-            school: req.body.adminID,
+            campus: req.body.adminID,
             sclassName: req.body.sclassName,
         });
 
         if (existingStudent) {
             res.send({ message: 'Roll Number already exists' });
-        }
-        else {
+        } else {
             const student = new Student({
                 ...req.body,
-                school: req.body.adminID,
+                campus: req.body.adminID,
                 password: hashedPass
             });
 
@@ -39,8 +38,8 @@ const studentLogIn = async (req, res) => {
         if (student) {
             const validated = await bcrypt.compare(req.body.password, student.password);
             if (validated) {
-                student = await student.populate("school", "schoolName")
-                student = await student.populate("sclassName", "sclassName")
+                student = await student.populate("campus", "campusName");
+                student = await student.populate("sclassName", "sclassName");
                 student.password = undefined;
                 student.examResult = undefined;
                 student.attendance = undefined;
@@ -58,7 +57,7 @@ const studentLogIn = async (req, res) => {
 
 const getStudents = async (req, res) => {
     try {
-        let students = await Student.find({ school: req.params.id }).populate("sclassName", "sclassName");
+        let students = await Student.find({ campus: req.params.id }).populate("sclassName", "sclassName");
         if (students.length > 0) {
             let modifiedStudents = students.map((student) => {
                 return { ...student._doc, password: undefined };
@@ -75,15 +74,14 @@ const getStudents = async (req, res) => {
 const getStudentDetail = async (req, res) => {
     try {
         let student = await Student.findById(req.params.id)
-            .populate("school", "schoolName")
+            .populate("campus", "campusName")
             .populate("sclassName", "sclassName")
             .populate("examResult.subName", "subName")
             .populate("attendance.subName", "subName sessions");
         if (student) {
             student.password = undefined;
             res.send(student);
-        }
-        else {
+        } else {
             res.send({ message: "No student found" });
         }
     } catch (err) {
@@ -93,51 +91,51 @@ const getStudentDetail = async (req, res) => {
 
 const deleteStudent = async (req, res) => {
     try {
-        const result = await Student.findByIdAndDelete(req.params.id)
-        res.send(result)
+        const result = await Student.findByIdAndDelete(req.params.id);
+        res.send(result);
     } catch (error) {
-        res.status(500).json(err);
+        res.status(500).json(error);
     }
 }
 
 const deleteStudents = async (req, res) => {
     try {
-        const result = await Student.deleteMany({ school: req.params.id })
+        const result = await Student.deleteMany({ campus: req.params.id });
         if (result.deletedCount === 0) {
-            res.send({ message: "No students found to delete" })
+            res.send({ message: "No students found to delete" });
         } else {
-            res.send(result)
+            res.send(result);
         }
     } catch (error) {
-        res.status(500).json(err);
+        res.status(500).json(error);
     }
 }
 
 const deleteStudentsByClass = async (req, res) => {
     try {
-        const result = await Student.deleteMany({ sclassName: req.params.id })
+        const result = await Student.deleteMany({ sclassName: req.params.id });
         if (result.deletedCount === 0) {
-            res.send({ message: "No students found to delete" })
+            res.send({ message: "No students found to delete" });
         } else {
-            res.send(result)
+            res.send(result);
         }
     } catch (error) {
-        res.status(500).json(err);
+        res.status(500).json(error);
     }
 }
 
 const updateStudent = async (req, res) => {
     try {
         if (req.body.password) {
-            const salt = await bcrypt.genSalt(10)
-            res.body.password = await bcrypt.hash(res.body.password, salt)
+            const salt = await bcrypt.genSalt(10);
+            req.body.password = await bcrypt.hash(req.body.password, salt);
         }
         let result = await Student.findByIdAndUpdate(req.params.id,
             { $set: req.body },
-            { new: true })
+            { new: true });
 
         result.password = undefined;
-        res.send(result)
+        res.send(result);
     } catch (error) {
         res.status(500).json(error);
     }
@@ -225,11 +223,11 @@ const clearAllStudentsAttendanceBySubject = async (req, res) => {
 };
 
 const clearAllStudentsAttendance = async (req, res) => {
-    const schoolId = req.params.id
+    const campusId = req.params.id;
 
     try {
         const result = await Student.updateMany(
-            { school: schoolId },
+            { campus: campusId },
             { $set: { attendance: [] } }
         );
 
@@ -241,7 +239,7 @@ const clearAllStudentsAttendance = async (req, res) => {
 
 const removeStudentAttendanceBySubject = async (req, res) => {
     const studentId = req.params.id;
-    const subName = req.body.subId
+    const subName = req.body.subId;
 
     try {
         const result = await Student.updateOne(
@@ -254,7 +252,6 @@ const removeStudentAttendanceBySubject = async (req, res) => {
         res.status(500).json(error);
     }
 };
-
 
 const removeStudentAttendance = async (req, res) => {
     const studentId = req.params.id;
@@ -271,7 +268,6 @@ const removeStudentAttendance = async (req, res) => {
     }
 };
 
-
 module.exports = {
     studentRegister,
     studentLogIn,
@@ -283,9 +279,9 @@ module.exports = {
     studentAttendance,
     deleteStudentsByClass,
     updateExamResult,
-
     clearAllStudentsAttendanceBySubject,
     clearAllStudentsAttendance,
     removeStudentAttendanceBySubject,
     removeStudentAttendance,
 };
+

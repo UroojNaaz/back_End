@@ -1,6 +1,5 @@
-const mongoose = require("mongoose");     
+const mongoose = require("mongoose");
 
-// Define the schema
 const adminSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -10,7 +9,6 @@ const adminSchema = new mongoose.Schema({
         type: String,
         unique: true,
         required: true,
-        lowercase: true, 
     },
     password: {
         type: String,
@@ -20,15 +18,11 @@ const adminSchema = new mongoose.Schema({
         type: String,
         default: "Admin"
     },
-    campusName: {    
+    campusName: {  
         type: String,
         unique: true,
-        required: true,
-        lowercase: true, 
+        required: true
     }
-}, {
-    timestamps: true, 
 });
 
-// Create and export the model
-module.exports = mongoose.model("Admin", adminSchema);
+module.exports = mongoose.model("admin", adminSchema);
